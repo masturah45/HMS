@@ -1,4 +1,4 @@
-namespace Hotel_Management_System.Model
+namespace HMS.Model
 {
     public class Room
     {
@@ -6,17 +6,24 @@ namespace Hotel_Management_System.Model
         public string Type {get; set;}
         public double Price {get; set;}
         public string RoomNumber {get; set;}
-        public int RoomId {get; set;}
-        public int NumberOfRooms {get; set;}
 
-        public Room (int id, string type, double price, string roomNumber, int roomId, int numberOfRooms)
+        public Room (int id, string type, double price, string roomNumber)
         {
             Id = id;
             Type = type;
             Price = price;
             RoomNumber = roomNumber;
-            RoomId = roomId;
-            NumberOfRooms = numberOfRooms;
+        }
+
+        public string ConvertToFileFormat()
+        {
+            return $"{RoomNumber}+++{Type}+++{Price}"; 
+        }
+
+         public static Room ConvertToRoom(string roominfo)
+        {
+            string[] info = roominfo.Split("+++");
+            return new Room(int.Parse(info[0]),info[1],double.Parse(info[2]),info[3]);
         }
     }
 }

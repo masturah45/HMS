@@ -1,4 +1,8 @@
-namespace Hotel_Management_System.Menu.Enum
+using System;
+using HMS.Interfaces;
+//using HMS.Implementation;
+
+namespace HMS.Menu.Enum
 {
     public enum Roles
     {
@@ -8,6 +12,6 @@ namespace Hotel_Management_System.Menu.Enum
         Cleaner,
         Accountant,
         Cook,
-        Driver,
+        Driver
     }
 }

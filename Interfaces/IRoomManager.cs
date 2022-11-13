@@ -1,13 +1,15 @@
-using Hotel_Management_System.Model;
+using HMS.Model;
 
-namespace Hotel_Management_System.Interfaces
+namespace HMS.Interfaces
 {
     public interface IRoomManager
     {
-        public void CreateRoom (string type, double price, int roomId, int numberOfRooms);
-        public void UpdateRoom (string type, double price, string newtype, double newprice);
-        public void DeleteRoom (string type);
+        public void CreateRoom (string type, double price);
+        public void UpdateRoom ();
+        public void DeleteRoom ();
         public Room GetRoom (string type);
         public void GetAllRooms ();
+        public void ReadFromFile();
+        public void ReWriteFile();
     }
 }

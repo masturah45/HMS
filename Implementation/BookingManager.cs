@@ -1,25 +1,62 @@
 using System;
 using System.Collections.Generic;
-using Hotel_Management_System.Model;
+using System.IO;
+using HMS.Model;
 
-namespace Hotel_Management_System.Interfaces.Implementation
+namespace HMS.Interfaces.Implementation
 {
     public class BookingManager : IBookingManager
     {
         public static List<Booking> listOfBookings = new List<Booking>();
-        public void CreateBooking( DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, string roomId, bool isavailable, int roomtype, string duration)
+        public string FileDirect = "@./Files";
+        public string FilePath = "./Files/booking.txt";
+        public void CreateBooking(Customer customer, DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, string roomId, bool isavailable, int roomtype, int duration)
         {
             Random random = new Random();
            int id = listOfBookings.Count + 1;
            bool ischecked = false;
-           if (checkInDate == DateTime.Now)
-           {
-               ischecked = true;
-           }
-           string customernumber = "MTC/CTM" + random.Next(100, 999).ToString();
-            Booking booking = new Booking ( id, bookingDate, checkInDate, checkOutDate, ischecked, isavailable, roomtype, duration);
-            listOfBookings.Add(booking);
-            Console.WriteLine("You have successfully booked a room");
+
+           if (checkInDate == DateTime.Now) ischecked = true;
+          
+           string customernumber = customer.CustomerNumber;
+
+            if(roomtype == 1)
+            {
+                customer.Wallet -= 200000 * duration;
+            }
+
+            else if(roomtype == 2)
+            {
+                customer.Wallet -= 100000 * duration;
+            }
+
+            else if (roomtype == 3)
+            {
+                customer.Wallet -= 50000 * duration;
+            }
+
+            else if (roomtype == 4)
+            {
+                customer.Wallet -= 25000 * duration;
+            }
+
+            else if (roomtype == 5)
+            {
+                customer.Wallet -= 15000 * duration;
+            }
+
+            else
+            {
+                Console.WriteLine("Invalid Input");
+            }
+
+           Booking booking = new Booking ( id, bookingDate, checkInDate, checkOutDate, ischecked, isavailable, roomtype, duration);
+           listOfBookings.Add(booking);
+           using(StreamWriter writer = new StreamWriter(FilePath, append: true))
+            {
+                writer.WriteLine(booking.ConvertToFileFormat());
+            }
+           Console.WriteLine($"You have successfully booked a room \nDuration: {duration} \nAmount {customer.Wallet}");
         }
 
         public void DeleteBooking(DateTime checkInDate)
@@ -35,6 +72,21 @@ namespace Hotel_Management_System.Interfaces.Implementation
             }
         }
 
+        public void DeleteBooking()
+        {
+            Console.Write("Enter email of customer to delete: ");
+            DateTime bookingDate = DateTime.Parse(Console.ReadLine().Trim());
+            foreach(var item in listOfBookings)
+            {
+                if (item.BookingDate == bookingDate)
+                {
+                    listOfBookings.Remove(item);
+                    ReWriteFile();
+                    break;
+                }
+            }
+        }
+
         public void GetAllBooking()
         {
             foreach (var item in listOfBookings)
@@ -44,7 +96,7 @@ namespace Hotel_Management_System.Interfaces.Implementation
             Console.WriteLine();
         }
 
-        public Booking GetAvailableRooms(int roomType, DateTime bookingDate, string duration)
+        public Booking GetAvailableRooms(int roomType, DateTime bookingDate, int duration)
         {
             foreach (var item in listOfBookings)
             {
@@ -81,19 +133,65 @@ namespace Hotel_Management_System.Interfaces.Implementation
             return null;
         }
 
-        public void UpdateBooking(DateTime bookingDate,DateTime checkInDate, DateTime checkOutDate)
+        public void ReadFromFile()
         {
-            Booking booking = GetBooking(bookingDate);
-            if (booking == null)
+            if (!Directory.Exists(FileDirect))
             {
-                Console.WriteLine("Booking not found");
+                Directory.CreateDirectory(FileDirect);
             }
+            if (!File.Exists(FilePath))
+            {
+                FileStream fs = new FileStream(FilePath, FileMode.CreateNew);
+                fs.Close();
+            }
+            using (StreamReader reader = new StreamReader(FilePath))
+            {
+                while (reader.Peek() > -1)
+                {
+                    string bookinginfo = reader.ReadLine();
+                    listOfBookings.Add(Booking.ConvertToBooking(bookinginfo));
+                }
+            }
+        }
+
+        public void ReWriteFile()
+        {
+           File.WriteAllText(FilePath, string.Empty);
+            using (StreamWriter writer = new StreamWriter(FilePath, append: true))
+            {
+                foreach (var booking in listOfBookings)
+                {
+                    writer.WriteLine(booking.ConvertToFileFormat());
+                }
+            } 
+        }
+
+        public void UpdateBooking()
+        {
+            Console.Write("Enter the bookingdate to Update: ");
+            DateTime bookingdate = DateTime.Parse(Console.ReadLine().Trim());
+            Booking bookingdateToUpdate = GetBooking(bookingdate);
+            if (bookingdateToUpdate != null)
+            {
+                Console.Write("Update checkInDate: ");
+                DateTime checkInDate = DateTime.Parse(Console.ReadLine().Trim());
+                bookingdateToUpdate.CheckInDate = checkInDate;
+
+                Console.Write("Update checkOutDate: ");
+                DateTime checkOutDate = DateTime.Parse(Console.ReadLine().Trim());
+                bookingdateToUpdate.CheckOutDate = checkOutDate;
+
+                Console.Write("Update Duration:  ");
+                int duration = int.Parse(Console.ReadLine().Trim());
+                bookingdateToUpdate.Duration = duration;
+                ReWriteFile();
+                Console.WriteLine("booking updated successfully");
+            }
+
             else
             {
-                booking.CheckInDate = checkInDate;
-                booking.CheckOutDate = checkOutDate;
+                Console.WriteLine("booking not found");
             }
-            listOfBookings[booking.Id - 1] = booking;
         }
     }
 

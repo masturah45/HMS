@@ -1,5 +1,7 @@
 using System;
-namespace Hotel_Management_System.Menu
+using HMS.Interfaces.Implementation;
+
+namespace HMS.Menu
 {
     public static class MainMenu
     {
@@ -7,16 +9,20 @@ namespace Hotel_Management_System.Menu
         static StaffMenu staffMenu = new StaffMenu();
         public static void WelcomePage()
         {
+            
             Console.WriteLine("////////////////////////////////////////////////////////");
             Console.WriteLine("////////////////////////////////////////////////////////");
             Console.WriteLine("///////////// Welcome to five stars hotel///////////////");
             Console.WriteLine("////////////////////////////////////////////////////////");
             Console.WriteLine("////////////////////////////////////////////////////////");
 
-            Console.WriteLine("Enter 1 as Staff\nEnter 2 as Customer");
+            Console.WriteLine("Enter 1 as Staff\nEnter 2 as Customer\nEnter 3 to shut down application");
             int opt = int.Parse(Console.ReadLine());
-            switch(opt)
+            bool isExit = false;
+            while (!isExit)
             {
+                switch(opt)
+                {
                 case 0 :
                 Console.WriteLine("Program Closed");
                 break;
@@ -31,13 +37,21 @@ namespace Hotel_Management_System.Menu
                 customerMenu.Customer();
                 break;
 
+                case 3 :
+                Console.WriteLine("Shutting Down Application...........");
+                isExit = true;
+                break;
+
+
                 default :
                 Console.WriteLine("Invalid input");
                 WelcomePage();
                 break;
 
             }
-                Console.WriteLine("");
+            }
+            
+            Console.WriteLine("");
             
         }
     }

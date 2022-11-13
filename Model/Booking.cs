@@ -1,5 +1,5 @@
 using System;
-namespace Hotel_Management_System.Model
+namespace HMS.Model
 {
     public class Booking
     {
@@ -10,9 +10,9 @@ namespace Hotel_Management_System.Model
         public bool isChecked {get; set;}
         public bool isAvailable {get; set;}
         public int RoomType {get; set;}
-        public string Duration {get; set;}
+        public int Duration {get; set;}
 
-        public Booking (int id, DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, bool ischecked, bool isavailable, int roomType, string duration)
+        public Booking (int id, DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, bool ischecked, bool isavailable, int roomType, int duration)
         {
             Id = id;
             BookingDate = bookingDate;
@@ -22,7 +22,17 @@ namespace Hotel_Management_System.Model
             isAvailable = isavailable;
             RoomType = roomType;
             Duration = duration;
+        }
 
+        public string ConvertToFileFormat()
+        {
+            return $"{Id}+++{BookingDate}+++{CheckInDate}+++{CheckOutDate}+++{isChecked}+++{isAvailable}+++{RoomType}+++{Duration}";
+        }
+
+         public static Booking ConvertToBooking(string bookinginfo)
+        {
+            string[] info = bookinginfo.Split("+++");
+            return new Booking(int.Parse(info[0]),DateTime.Parse(info[1]),DateTime.Parse(info[2]),DateTime.Parse(info[3]),bool.Parse(info[4]),bool.Parse(info[5]),int.Parse(info[6]),int.Parse(info[7]));
         }
     }
 }

@@ -1,16 +1,18 @@
 using System;
-using Hotel_Management_System.Model;
+using HMS.Model;
 
-namespace Hotel_Management_System.Interfaces
+namespace HMS.Interfaces
 {
     public interface IBookingManager
     {
         public Booking GetBooking (int id, DateTime bookingDate);
-        public void UpdateBooking (DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate);
-        public void DeleteBooking (DateTime checkInDate);
+        public void UpdateBooking ();
+        public void DeleteBooking ();
         public Booking GetBooking (DateTime bookingDate);
         public void GetAllBooking ();
-        public void CreateBooking (DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, string roomId, bool isavailable, int roomtype, string duration);
-        public Booking GetAvailableRooms(int roomType, DateTime bookingDate, string duration );
+        public void CreateBooking (Customer customer, DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, string roomId, bool isavailable, int roomtype, int duration);
+        public Booking GetAvailableRooms(int roomType, DateTime bookingDate, int duration );
+        public void ReadFromFile();
+        public void ReWriteFile();
     }
 }

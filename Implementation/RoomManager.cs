@@ -1,32 +1,41 @@
 using System;
 using System.Collections.Generic;
-using Hotel_Management_System.Model;
+using System.IO;
+using HMS.Model;
 
-namespace Hotel_Management_System.Interfaces.Implementation
+namespace HMS.Interfaces.Implementation
 {
     public class RoomManager : IRoomManager
     {
         public static List<Room> listOfRooms = new List<Room>();
-        public void CreateRoom( string type, double price, int roomId, int numberOfRooms)
+        public string FileDirect = "@./Files";
+        public string FilePath = "./Files/room.txt";
+        public void CreateRoom(string type, double price)
         {    
             Random rand = new Random();
             int id = listOfRooms.Count + 1;
             string roomNumber = "MTC/CTM" + rand.Next(100, 999).ToString();
-            Room room = new Room(id, type, price,roomNumber, roomId, numberOfRooms);
+            Room room = new Room(id, type, price,roomNumber);
             listOfRooms.Add(room);
-            Console.WriteLine($"thank you, {room.Type} created succesfully");
+            using (StreamWriter writer = new StreamWriter(FilePath, append: true))
+            {
+                writer.WriteLine(room.ConvertToFileFormat());
+            }
+            Console.WriteLine($"thank you, {room.Type} created succesfully and the room number is {room.RoomNumber}");
         }
 
-        public void DeleteRoom(string type)
+        public void DeleteRoom()
         {
-            Room adm = GetRoom(type);
-            if (adm != null)
+            Console.Write("Enter the type of room u want to delete: ");
+            string type = Console.ReadLine().Trim();
+            foreach(var item in listOfRooms)
             {
-                listOfRooms.Remove(adm);
-            }
-            else
-            {
-                Console.WriteLine("Room not found");
+                if (item.Type == type)
+                {
+                    listOfRooms.Remove(item);
+                    ReWriteFile();
+                    break;
+                }
             }
         }
 
@@ -51,17 +60,56 @@ namespace Hotel_Management_System.Interfaces.Implementation
             return null;
         }
 
-        public void UpdateRoom(string type, double price, string newtype, double newprice)
+        public void ReadFromFile()
         {
-            Room ad = GetRoom(type);
-            if (ad == null)
+            if (!Directory.Exists(FileDirect))
             {
-                Console.WriteLine("Room not found");
+                Directory.CreateDirectory(FileDirect);
             }
+            if (!File.Exists(FilePath))
+            {
+                FileStream fs = new FileStream(FilePath, FileMode.CreateNew);
+                fs.Close();
+            }
+            using(StreamReader reader = new StreamReader(FilePath))
+            {
+                while (reader.Peek() > -1)
+                {
+                    string roominfo = reader.ReadLine();
+                    listOfRooms.Add(Room.ConvertToRoom(roominfo));
+                }
+            }
+        }
+
+        public void ReWriteFile()
+        {
+           File.WriteAllText(FilePath, string.Empty);
+            using(StreamWriter writer = new StreamWriter(FilePath, append: true))
+            {
+                foreach (var room in listOfRooms)
+                {
+                    writer.WriteLine(room.ConvertToFileFormat());
+                }
+            }
+        }
+
+        public void UpdateRoom()
+        {
+            Console.Write("Enter the type of room you want to Update: ");
+            string type = Console.ReadLine().Trim();
+            Room roomToUpdate = GetRoom(type);
+            if (roomToUpdate != null)
+            {
+                Console.Write("Enter the price of room to update: ");
+                double price = double.Parse(Console.ReadLine().Trim());
+                roomToUpdate.Price = price;
+                ReWriteFile();
+                Console.WriteLine("room updated successfully");
+            }
+
             else
             {
-                ad.Type = newtype;
-                ad.Price = newprice;
+                Console.WriteLine("room not found");
             }
         }
     }

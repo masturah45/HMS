@@ -1,14 +1,18 @@
 using System;
-using Hotel_Management_System.Model;
+using HMS.Model;
 
-namespace Hotel_Management_System.Interfaces
+namespace HMS.Interfaces
 {
     public interface IStaffManager
     {
-        public void CreateStaff (string firstName, string lastName, string email, int pin, DateTime dateOfBirth, string phoneNumber, int roles);
-        public void UpdateStaff (string firstName, string lastName, string email, DateTime dateOfBirth, string phoneNumber);
-        public void DeleteStaff (string id);
+        public void CreateStaff (string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, int roles);
+        public void UpdateStaff ();
+        public void DeleteStaff ();
         public Staff GetStaff (string email);
-        public Staff Login (string email, int pin);
+        public void GetAllStaff();
+        public Staff Login (string email, string password);
+
+        public void ReadFromFile();
+        public void ReWriteFile();
     }
 }

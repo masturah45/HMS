@@ -1,15 +1,19 @@
 using System;
-using Hotel_Management_System.Model;
-namespace Hotel_Management_System.Interfaces
+using HMS.Model;
+namespace HMS.Interfaces
 {
     public interface ICustomerManager
     {
-        public void CreateCustomer (string nextOfKin, string firstName, string lastName, string email, int pin, DateTime dateOfBirth, string phoneNumber, string roomtype);
-        public void UpdateCustomer ( string firstName, string lastName, string email, DateTime dateOfBirth, string phoneNumber);
-        public void DeleteCustomer (string id);
+        public void CreateCustomer (string nextOfKin, string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, int roomtype);
+        public void UpdateCustomer ();
+        public void DeleteCustomer ();
+        public void GetAllCustomer();
         public Customer GetCustomer (string email);
-        public Customer Login (string email, int pin);
+        public Customer Login (string email, string password);
         public void AddMoneyToWallet (string email, double amount);
-        public Customer CheckWallet (string email);
+        public void CheckWallet (string email,double amount);
+        public Customer RescheduleBooking (int id, int roomtype, int bookingdate, string duration);
+        public void ReadFromFile();
+        public void ReWriteFile();
     }
 }

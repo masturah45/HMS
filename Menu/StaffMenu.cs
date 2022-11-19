@@ -14,7 +14,6 @@ namespace HMS.Menu
 
         public void Staff()
         {
-            staffManager.ReadFromFile();
             bool isPrev = false;
             while (!isPrev)
             {
@@ -26,7 +25,7 @@ namespace HMS.Menu
                 }
                 else if (choice == 2)
                 {
-                    LoginStaff(); 
+                    LoginStaff();
                 }
                 else if (choice == 0)
                 {
@@ -61,25 +60,40 @@ namespace HMS.Menu
 
             DateTime DOB = DateTime.Parse(Console.ReadLine());
             Console.Write("Enter your dateOfBirth(yyyy-mm-dd): ");
-            while (!DateTime.TryParse(Console.ReadLine(), out DOB ))
+            while (!DateTime.TryParse(Console.ReadLine(), out DOB))
             {
                 Console.Write("Enter your date again: ");
             }
-            
-            Console.WriteLine("Enter Role () 2 - Receptionist, 3 - Security, 4 - Cleaner, 5 - Accountant, 6 - Cook, 7 - Driver: ");
-            int roles;
-            while (!int.TryParse(Console.ReadLine(), out roles))
+            Console.WriteLine("Enter your roles (1 - Manager 2 - Receptionist 3 - Accountant)");
+            int roleOption;
+            while (!int.TryParse(Console.ReadLine(), out roleOption))
             {
-                Console.WriteLine("Invalid input; Enter; Enter Staff Role ()2 - Receptionist, 3 - Security, 4 - Cleaner, 5 - Accountant, 6- Cook, 7 - Driver ");
+                Console.WriteLine("Invalid input; Enter; Enter Staff Role (1 - Manager 2 - Receptionist 3 - Accountant)");
             }
-            staffManager.CreateStaff(fName, lName,email, password, DOB, phoneNumber, roles);
+            string roles = "";
+            switch (roleOption)
+            {
+                case 1:
+                    roles = "Manager";
+                    break;
+
+                case 2:
+                    roles = "Receptionist";
+                    break;
+
+                case 3:
+                    roles = "Accountant";
+                    break;
+            }
+
+            staffManager.CreateStaff(fName, lName, email, password, DOB, phoneNumber, roles);
             Staff();
         }
 
-         public void LoginStaff()
+        public void LoginStaff()
         {
             Console.WriteLine("<<<<<< Main Menu <<<<<<< Login >>>>>>>>>");
-            
+
             Console.Write("Enter your email: ");
             string email = Console.ReadLine();
 
@@ -102,73 +116,89 @@ namespace HMS.Menu
 
         public void StaffSubMenu()
         {
-            Console.WriteLine("\nEnter 1 to update rooms\nEnter 2 to create staff\nEnter 3 to get the available rooms\nEnter 4 to update customer\nEnter 5 to delete customer\nEnter 6 to create room\nEnter 7 to view all staffs\nEnter 8 to view all customer\nEnter 9 to view all booking\nEnter 10 to view all rooms\nEnter 0 to go back to main menu");
+            Console.WriteLine("\nEnter 1 to update staffs\nEnter 2 to create staff\nEnter 3 to get the available rooms\nEnter 4 to update customer\nEnter 5 to delete customer\nEnter 6 to create room\nEnter 7 to view all staffs\nEnter 8 to view all custoomers\nEnter 9 to view all rooms\nEnter 0 to go back to main menu");
             bool exit = false;
             while (!exit)
             {
                 int option;
 
-                while (!int.TryParse(Console.ReadLine(), out option ))
+                while (!int.TryParse(Console.ReadLine(), out option))
                 {
                     Console.WriteLine("Invalid Input, Enter 1, 2, 3, 4, 5 or 0");
                 }
-                switch(option)
+                switch (option)
                 {
-                    case 1 :
-                    UpdateStaff();
-                    break;
+                    case 1:
+                        UpdateStaff();
+                        break;
 
-                    case 2 :
-                    CreateStaff();
-                    break;
+                    case 2:
+                        CreateStaff();
+                        break;
 
-                    case 3 :
-                    GetAvailableRooms();
-                    break;
+                    case 3:
+                        GetAvailableRooms();
+                        break;
 
-                    case 4 :
-                    UpdateCustomer();
-                    break;
+                    case 4:
+                        UpdateCustomer();
+                        break;
 
-                    case 5 :
-                    DeleteCustomer();
-                    break;
+                    case 5:
+                        DeleteCustomer();
+                        break;
 
-                    case 6 :
-                    CreateRoom();
-                    break;
+                    case 6:
+                        CreateRoom();
+                        break;
 
-                    case 7 :
-                    staffManager.GetAllStaff();
-                    break;
+                    case 7:
+                        staffManager.GetAllStaff();
+                        break;
 
-                    case 8 :
-                    customerManager.GetAllCustomer();
-                    break;
+                    case 8:
+                        customerManager.GetAllCustomer();
+                        break;
 
-                    case 9 :
-                    bookingManager.GetAllBooking();
-                    break;
+                    case 9:
+                        roomManager.GetAllRooms();
+                        break;
 
-                    case 10 :
-                    roomManager.GetAllRooms();
-                    break;
+                    case 0:
+                        MainMenu.WelcomePage();
+                        break;
 
-                    case 0 :
-                    MainMenu.WelcomePage();
-                    break;
-
-                    default :
-                    Console.WriteLine("Invalid Input");
-                    break;
+                    default:
+                        Console.WriteLine("Invalid Input");
+                        break;
                 }
             }
         }
 
         public void UpdateStaff()
         {
-            staffManager.UpdateStaff();
-            Staff();
+            Console.Write("Enter your Email: ");
+            string email = Console.ReadLine().Trim();
+            var staff = staffManager.GetStaff(email);
+            if (staff != null)
+            {
+                Console.Write("Enter new staff first Name: ");
+                string firstName = Console.ReadLine();
+
+                Console.Write("Enter new staff last Name: ");
+                string lastName = Console.ReadLine();
+
+                Console.Write("Enter new Roles: ");
+                string roles = Console.ReadLine();
+
+                staffManager.UpdateStaff(email, firstName, lastName, roles);
+
+                Console.WriteLine($"{email} successfully updated. ");
+            }
+            else
+            {
+                Console.WriteLine($"{email} not found");
+            }
         }
 
         public void CreateStaff()
@@ -191,11 +221,26 @@ namespace HMS.Menu
             Console.Write("Enter your phoneNumber: ");
             string phoneNumber = Console.ReadLine();
 
-            Console.WriteLine("Enter your roles () 2 - Receptionist, 3 - Security, 4 - Cleaner, 5 - Accountant, 6 - Cook, 7 - Driver ");
-            int roles;
-            while (!int.TryParse(Console.ReadLine(), out roles))
+            Console.WriteLine("Enter your roles (1 - Manager 2 - Receptionist 3 - Accountant)");
+            int roleOption;
+            while (!int.TryParse(Console.ReadLine(), out roleOption))
             {
-                Console.WriteLine("Invalid input; Enter; Enter Staff Role ()2 - Receptionist, 3 - Security, 4 - Cleaner, 5 - Accountant, 6- Cook, 7 - Driver ");
+                Console.WriteLine("Invalid input; Enter; Enter Staff Role (1 - Manager 2 - Receptionist 3 - Accountant)");
+            }
+            string roles = "";
+            switch (roleOption)
+            {
+                case 1:
+                    roles = "Manager";
+                    break;
+
+                case 2:
+                    roles = "Receptionist";
+                    break;
+
+                case 3:
+                    roles = "Accountant";
+                    break;
             }
 
             staffManager.CreateStaff(firstName, lastName, email, password, dateOfBirth, phoneNumber, roles);
@@ -204,12 +249,39 @@ namespace HMS.Menu
 
         public void UpdateCustomer()
         {
-            customerManager.UpdateCustomer();
+            Console.Write("Enter your Email: ");
+            string email = Console.ReadLine().Trim();
+            var customer = customerManager.GetCustomer(email);
+            if (customer != null)
+            {
+                Console.Write("after getting");
+                Console.Write("Enter new customer first Name: ");
+                string firstName = Console.ReadLine();
+
+                Console.Write("Enter new customer last Name: ");
+                string lastName = Console.ReadLine();
+
+                Console.Write("Enter new nextOfKin: ");
+                string nextOfKin = Console.ReadLine();
+
+                customerManager.UpdateCustomer(email, firstName, lastName, nextOfKin);
+
+                Console.WriteLine($"{email} successfully updated. ");
+            }
+            else
+            {
+                Console.WriteLine($"{email} not found");
+            }
         }
 
         public void DeleteCustomer()
         {
-            customerManager.DeleteCustomer();
+            System.Console.Write("Enter your email: ");
+            string email = Console.ReadLine().Trim();
+
+            var customer = customerManager.GetCustomer(email);
+
+            System.Console.WriteLine($"{email} successfully deleted");
         }
 
         public void GetAvailableRooms()

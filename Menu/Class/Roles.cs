@@ -8,10 +8,7 @@ namespace HMS.Menu.Enum
     {
         Manager = 1,
         Receptionist,
-        Security,
-        Cleaner,
         Accountant,
-        Cook,
-        Driver
+        
     }
 }

@@ -124,9 +124,9 @@ namespace HMS.Menu
                         AddMoneyToWallet();
                         break;
 
-                    case 3:
-                        RescheduleBooking();
-                        break;
+                    // case 3:
+                    //     RescheduleBooking();
+                    //     break;
 
                     case 4:
                         CheckWallet();
@@ -156,9 +156,6 @@ namespace HMS.Menu
             Console.Write("Enter your checkOutDate(yyyy-mm-dd): ");
             DateTime checkOutDate = DateTime.Parse(Console.ReadLine());
 
-            Console.Write("Enter your roomId: ");
-            string roomId = Console.ReadLine();
-
             Console.WriteLine("Enter your roomtype () 2 - QueenSize = 100000, 3 - Presidential = 50000, 4 - DoubleSize = 25000, 5 - NormalSize = 15000  : ");
             int roomtype;
             while (!int.TryParse(Console.ReadLine(), out roomtype))
@@ -169,9 +166,9 @@ namespace HMS.Menu
             DateTime bookingdate = DateTime.UtcNow;
             // Console.Write("Enter your duration: ");
             int duration = ((checkOutDate - checkInDate).Days) + 1;
-            bool isAvailable = true;
+            bool ischecked = true;
 
-            bookingManager.CreateBooking(customer, bookingdate, checkInDate, checkOutDate, roomId, isAvailable, roomtype, duration);
+            bookingManager.CreateBooking( bookingdate,  checkInDate, checkOutDate, ischecked, roomtype, duration);
         }
 
         public void AddMoneyToWallet()
@@ -195,21 +192,19 @@ namespace HMS.Menu
 
             customerManager.CheckWallet(email, amount);
         }
-        public void RescheduleBooking()
-        {
-            Console.Write("Enter your id: ");
-            int id = int.Parse(Console.ReadLine());
+        // public void RescheduleBooking()
+        // {
 
-            Console.Write("Enter your roomtype:  ");
-            int roomtype = int.Parse(Console.ReadLine());
+        //     Console.Write("Enter your roomtype:  ");
+        //     int roomtype = int.Parse(Console.ReadLine());
 
-            Console.Write("Enter your bookingDate(yyyy-mm-dd): ");
-            int bookingdate = int.Parse(Console.ReadLine());
+        //     Console.Write("Enter your bookingDate(yyyy-mm-dd): ");
+        //     int bookingdate = int.Parse(Console.ReadLine());
 
-            Console.Write("Enter your duration:");
-            string duration = (Console.ReadLine());
+        //     Console.Write("Enter your duration:");
+        //     string duration = (Console.ReadLine());
 
-            customerManager.RescheduleBooking(id, roomtype, bookingdate, duration);
-        }
+        //     customerManager.RescheduleBooking(roomtype, bookingdate, duration);
+        // }
     }
 }

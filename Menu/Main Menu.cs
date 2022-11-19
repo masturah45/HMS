@@ -7,6 +7,7 @@ namespace HMS.Menu
     {
         static CustomerMenu customerMenu = new CustomerMenu();
         static StaffMenu staffMenu = new StaffMenu();
+        
         public static void WelcomePage()
         {
             

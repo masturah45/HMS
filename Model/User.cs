@@ -3,7 +3,7 @@ namespace HMS.Model
 {
     public class User
     {
-        public int Id {get; set;}
+        // public int Id {get; set;}
         public string FirstName {get; set;}
         public string LastName {get; set;}
         public string Email {get; set;}
@@ -11,9 +11,9 @@ namespace HMS.Model
         public DateTime DateOfBirth {get; set;}
         public string PhoneNumber {get; set;}
 
-        public User(int id, string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber)
+        public User( string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber)
         {
-            Id = id;
+            // Id = id;
             FirstName = firstName;
             LastName = lastName;
             Email = email;

@@ -2,136 +2,167 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using HMS.Model;
+using MySql.Data.MySqlClient;
 
 namespace HMS.Interfaces.Implementation
 {
     public class StaffManager : IStaffManager
     {
-        public string FileDirect = "./Files";
-        public static List<Staff> Staffs = new List<Staff>();
-        public string FilePath = "./Files/staff.txt";
-        public void CreateStaff(string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, int roles)
+        // public static List<Staff> Staffs = new List<Staff>();
+        public string connectionString = "Server=localhost;Database=hms;Uid=root;Pwd=masturah";
+        public void CreateStaff(string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, string roles)
         {
 
             Random rand = new Random();
-            int id = Staffs.Count + 1;
-            string staffnumber = "MTC/AD" + rand.Next(100, 999).ToString();
-            Staff staff = new Staff(roles, staffnumber, id, firstName, lastName, email, password, dateOfBirth, phoneNumber);
-            Staffs.Add(staff);
-            using (StreamWriter writer = new StreamWriter(FilePath, append: true))
+            // int id = St
+            string staffnumber = "MTC/CTM" + rand.Next(100, 999).ToString();
+            Staff staff = new Staff(roles, staffnumber, firstName, lastName, email, password, dateOfBirth, phoneNumber);
+            // Staffs.Add(staff);
+            var query = $"insert into hms.staffs (firstName, lastName, Email, Password, DateOfBirth, PhoneNumber, Roles) value ('{firstName}', '{lastName}', '{email}', '{password}', '{dateOfBirth}', '{phoneNumber}', {roles});";
+            try
             {
-                writer.WriteLine(staff.ConvertToFileFormat());
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
-
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }
             Console.WriteLine($"thank you mr {staff.FirstName}, you are the {staff.Roles} and your staff identity number is {staffnumber}");
         }
 
-        public void DeleteStaff()
+        public void DeleteStaff(string email)
         {
-            Console.Write("Enter email of staff to delete: ");
-            string email = Console.ReadLine().Trim();
-            foreach (var item in Staffs)
+           var staff = GetStaff(email);
+            if (staff != null)
             {
-                if (item.Email == email)
+                try
                 {
-                    Staffs.Remove(item);
-                    ReWriteFile();
-                    break;
+                    var deleteSuccessMsg = $"{staff.FirstName} {staff.LastName} Successfully deleted. ";
+                    using (var connection = new MySqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        using (var command = new MySqlCommand($"DELETE From staffs WHERE Email = '{email}'", connection))
+                        {
+                            var reader = command.ExecuteNonQuery();
+                            System.Console.WriteLine(deleteSuccessMsg);
+                        }
+                    }
                 }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine(ex.Message);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Staff not found.");
             }
         }
 
         public void GetAllStaff()
         {
-            foreach (var item in Staffs)
+            try
             {
-                Console.WriteLine($"{item.Roles}+++{item.Staffnumber}+++{item.Id}+++{item.FirstName}+++{item.LastName}+++{item.Email}+++{item.Password}+++{item.DateOfBirth}+++{item.PhoneNumber}");
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand("select * From staffs", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                      while (reader.Read())
+                        {
+                            Console.WriteLine($"{reader["roles"]}\t{reader["staffNumber"]}\t{reader["id"].ToString()}\t{reader["firstName"].ToString()}\t{reader["lastName"].ToString()}\t{reader["email"].ToString()}\t{reader["password"].ToString()}\t{reader["dateOfBirth"].ToString()}\t{reader["phoneNumber"].ToString()}");
+                        }
+                    }
+                }
             }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }    
         }
 
         public Staff GetStaff(string email)
         {
-            foreach (var item in Staffs)
+            Staff staff = null;
+            try
             {
-                if (item.Email == email)
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    return item;
+                    connection.Open();
+                    using (var command = new MySqlCommand($"select * From staffs WHERE Email = '{email}'", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            staff = new Staff(reader["roles"].ToString(), reader["staffNumber"].ToString(),reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString());
+                        }
+                    }
                 }
             }
-            return null;
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }
+            return staff is not null && staff.Email.ToUpper() == email.ToUpper() ? staff : null;
         }
 
         public Staff Login(string email, string password)
         {
-            foreach (var item in Staffs)
+            Staff staff = null;
+            try
             {
-                if (item.Email == email && item.Password == password)
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    return item;
+                    connection.Open();
+                    var querr = $"select * from staffs where email = '{email}' and password = '{password}';";
+                    using (var command = new MySqlCommand(querr, connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            staff = new Staff(reader["roles"].ToString(),reader.GetString(2), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString());
+                        }
+                    }
                 }
             }
-            return null;
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }
+            return staff is not null && staff.Email.ToUpper() == email.ToUpper() && staff.Password == password ? staff : null;
         }
 
-        public void ReadFromFile()
+        public void UpdateStaff(string email, string firstName, string lastName, string roles)
         {
-            if (!Directory.Exists(FileDirect))
+            try
             {
-                Directory.CreateDirectory(FileDirect);
-            }
-            if (!File.Exists(FilePath))
-            {
-                FileStream fs = new FileStream(FilePath, FileMode.CreateNew);
-                fs.Close();
-            }
-            using (StreamReader reader = new StreamReader(FilePath))
-            {
-                while (reader.Peek() > -1)
+                using(var connection = new MySqlConnection(connectionString))
                 {
-                    string staffinfo = reader.ReadLine();
-                    Staffs.Add(Staff.ConvertToStaff(staffinfo));
+                    var msg = $"{email} Updated Sucessfully";
+                    connection.Open();
+                    var queryUpdateA = $"Update staffs SET firstName = '{firstName}', lastName = '{lastName}', roles = '{roles}' where email = '{email}'";
+                    using (var command = new MySqlCommand(queryUpdateA, connection))
+                    {
+                        var yes = command.ExecuteNonQuery();
+                        System.Console.WriteLine(msg);
+                    }
                 }
             }
-        }
-
-        public void ReWriteFile()
-        {
-            File.WriteAllText(FilePath, string.Empty);
-            using (StreamWriter writer = new StreamWriter(FilePath, append: true))
+            catch (System.Exception ex)
             {
-                foreach (var staff in Staffs)
-                {
-                    writer.WriteLine(staff.ConvertToFileFormat());
-                }
+                
+                System.Console.WriteLine(ex.Message);
             }
         }
 
-        public void UpdateStaff()
-        {
-            Console.Write("Enter email of Staff to Update: ");
-            string email = Console.ReadLine().Trim();
-            Staff staffToUpdate = GetStaff(email);
-            if (staffToUpdate != null)
-            {
-                Console.Write("Update First Name: ");
-                string firstName = Console.ReadLine().Trim();
-                staffToUpdate.FirstName = firstName;
-
-                Console.Write("Update Last Name: ");
-                string lastName = Console.ReadLine().Trim();
-                staffToUpdate.LastName = lastName;
-
-                Console.Write("Update Roles:  ");
-                int roles = int.Parse(Console.ReadLine().Trim());
-                staffToUpdate.Roles = roles;
-                ReWriteFile();
-                Console.WriteLine("staff updated successfully");
-            }
-
-            else
-            {
-                Console.WriteLine("staff not found");
-            }
-        }
+        
     }
 }

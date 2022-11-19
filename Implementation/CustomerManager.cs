@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using HMS.Model;
+using MySql.Data.MySqlClient;
 
 namespace HMS.Interfaces.Implementation
 {
     public class CustomerManager : ICustomerManager
     {
-        public static List<Customer> listOfCustomers = new List<Customer>();
-        public string FileDirect = "@./Files";
-        public string FilePath = "./Files/customer.txt";
+        // public static List<Customer> listOfCustomers = new List<Customer>();
+        public string connectionString = "Server=localhost;Database=hms;Uid=root;Pwd=masturah";
         public void AddMoneyToWallet(string email, double amount)
         {
             Customer adm = GetCustomer(email);
@@ -46,139 +46,169 @@ namespace HMS.Interfaces.Implementation
         {
 
             Random rand = new Random();
-            int id = listOfCustomers.Count + 1;
+            // int id = listOfCustomers.Count + 1;
             double wallet = 0;
             string customernumber = "MTC/CTM" + rand.Next(100, 999).ToString();
-            Customer customer = new Customer(wallet, nextOfKin, customernumber, id, firstName, lastName, email, password, dateOfBirth, phoneNumber, roomtype);
-            listOfCustomers.Add(customer);
-            using (StreamWriter writer = new StreamWriter(FilePath, append: true))
+            Customer customer = new Customer(wallet, nextOfKin, customernumber,firstName, lastName, email, password, dateOfBirth, phoneNumber, roomtype);
+            // listOfCustomers.Add(customer);
+            var query = $"insert into customers (firstName, lastName, Email, Password, DateOfBirth, NextOfKin, PhoneNumber, Roomtype)values ('{firstName}', '{lastName}', '{email}', '{password}', '{dateOfBirth}', '{nextOfKin}', '{phoneNumber}', {roomtype})";
+            try
             {
-                writer.WriteLine(customer.ConvertToFileFormat());
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
             }
             Console.WriteLine($"Thank you {customer.FirstName}, your customer number is {customer.CustomerNumber}");
         }
 
-        public void DeleteCustomer()
+        public void DeleteCustomer(string email)
         {
-            Console.Write("Enter email of customer to delete: ");
-            string email = Console.ReadLine().Trim();
-            foreach (var item in listOfCustomers)
+           var customer = GetCustomer(email);
+            if (customer != null)
             {
-                if (item.Email == email)
+                try
                 {
-                    listOfCustomers.Remove(item);
-                    ReWriteFile();
-                    break;
+                    var deleteSuccessMsg = $"{customer.FirstName} {customer.LastName} Successfully deleted. ";
+                    using (var connection = new MySqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        using (var command = new MySqlCommand($"DELETE From customers WHERE Email = '{email}'", connection))
+                        {
+                            var reader = command.ExecuteNonQuery();
+                            System.Console.WriteLine(deleteSuccessMsg);
+                        }
+                    }
                 }
-                else
+                catch (System.Exception ex)
                 {
-                    Console.WriteLine("Customer not found");
+                    System.Console.WriteLine(ex.Message);
                 }
+            }
+            else
+            {
+                Console.WriteLine("Customer not found.");
             }
         }
 
         public void GetAllCustomer()
         {
-            foreach (var item in listOfCustomers)
+            try
             {
-                Console.WriteLine($"{item.Wallet}+++{item.NextOfKin}+++{item.CustomerNumber}+++{item.Id}+++{item.FirstName}+++{item.LastName}+++{item.Email}+++{item.Password}+++{item.DateOfBirth}+++{item.PhoneNumber}+++{item.RoomType}");
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand("select * From customers", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"{reader["wallet"]}\t{reader["NextOfKin"]}\t{reader["CustomerNumber"].ToString()}\t{reader["firstName"].ToString()}\t{reader["lastName"].ToString()}\t{reader["email"].ToString()}\t{reader["password"].ToString()}\t{reader["dateOfBirth"].ToString()}\t{reader["phoneNumber"].ToString()}\t{reader["Roomtype"].ToString()}");
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
             }
         }
 
         public Customer GetCustomer(string email)
         {
-            foreach (var customer in listOfCustomers)
+           Customer customer = null;
+            try
             {
-                if (customer.Email == email)
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    return customer;
+                    connection.Open();
+                    using (var command = new MySqlCommand($"select * From customers WHERE Email = '{email}'", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            customer = new Customer(double.Parse(reader["wallet"].ToString()), reader["nextOfKin"].ToString(),reader["customerNumber"].ToString(), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString(), Convert.ToInt32(reader["roomtype"]));
+                        }
+                    }
                 }
             }
-            return null;
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine("This is error");
+                System.Console.WriteLine(ex.Message);
+            }
+            return customer is not null && customer.Email.ToUpper() == email.ToUpper() ? customer : null;
         }
 
         public Customer Login(string email, string password)
         {
-            foreach (var item in listOfCustomers)
+            Customer customer = null;
+            try
             {
-                if (item.Email == email && item.Password == password)
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    return item;
+                    connection.Open();
+                    var querr = $"select * from customers where email = '{email}' and password = '{password}';";
+                    using (var command = new MySqlCommand(querr, connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            customer = new Customer(double.Parse(reader["wallet"].ToString()),reader["nextOfKin"].ToString(), reader["customerNumber"].ToString(), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString(), int.Parse(reader["roomtype"].ToString()));
+                        }
+                    }
                 }
             }
-            return null;
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }
+            return customer is not null && customer.Email.ToUpper() == email.ToUpper() && customer.Password == password ? customer : null;
         }
 
-        public void ReadFromFile()
+        
+
+
+        // public Customer RescheduleBooking( int roomtype, int bookingdate, string duration)
+        // {
+        //     foreach (var item in listOfCustomers)
+        //     {
+        //         if (item.bookingDate == bookingdate)
+        //         {
+        //             return item;
+        //         }
+        //     }
+        //     return null;
+        // } 
+
+        public void UpdateCustomer(string email, string firstName, string lastName, string nextOfKin)
         {
-            if (!Directory.Exists(FileDirect))
+            try
             {
-                Directory.CreateDirectory(FileDirect);
-            }
-            if (!File.Exists(FilePath))
-            {
-                FileStream fs = new FileStream(FilePath, FileMode.Create);
-                fs.Close();
-            }
-            using (StreamReader reader = new StreamReader(FilePath))
-            {
-                while (reader.Peek() > -1)
+                using(var connection = new MySqlConnection(connectionString))
                 {
-                    string customerinfo = reader.ReadLine();
-                    listOfCustomers.Add(Customer.ConvertToCustomer(customerinfo));
+                    var msg = $"{email} Updated Sucessfully";
+                    connection.Open();
+                    var queryUpdateA = $"Update customers SET firstName = '{firstName}', lastName = '{lastName}', nextOfKin = '{nextOfKin}' where email = '{email}'";
+                    using (var command = new MySqlCommand(queryUpdateA, connection))
+                    {
+                        var yes = command.ExecuteNonQuery();
+                        System.Console.WriteLine(msg);
+                    }
                 }
             }
-        }
-
-        public Customer RescheduleBooking(int id, int roomtype, int bookingdate, string duration)
-        {
-            foreach (var item in listOfCustomers)
+            catch (System.Exception ex)
             {
-                if (item.Id == id)
-                {
-                    return item;
-                }
-            }
-            return null;
-        }
-
-        public void ReWriteFile()
-        {
-            File.WriteAllText(FilePath, string.Empty);
-            using (StreamWriter writer = new StreamWriter(FilePath, append: true))
-            {
-                foreach (var customer in listOfCustomers)
-                {
-                    writer.WriteLine(customer.ConvertToFileFormat());
-                }
-            }
-        }
-
-        public void UpdateCustomer()
-        {
-            Console.Write("Enter email of Customer to Update: ");
-            string email = Console.ReadLine().Trim();
-            Customer customerToUpdate = GetCustomer(email);
-            if (customerToUpdate != null)
-            {
-                Console.Write("Update First Name: ");
-                string firstName = Console.ReadLine().Trim();
-                customerToUpdate.FirstName = firstName;
-
-                Console.Write("Update Last Name: ");
-                string lastName = Console.ReadLine().Trim();
-                customerToUpdate.LastName = lastName;
-
-                Console.Write("Update NextOfKin:  ");
-                string nextOfKin = Console.ReadLine().Trim();
-                customerToUpdate.NextOfKin = nextOfKin;
-                ReWriteFile();
-                Console.WriteLine("customer updated successfully");
-            }
-
-            else
-            {
-                Console.WriteLine("customer not found");
+                
+                System.Console.WriteLine(ex.Message);
             }
         }
     }

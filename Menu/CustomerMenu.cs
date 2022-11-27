@@ -70,15 +70,12 @@ namespace HMS.Menu
             {
                 Console.Write("Enter your date again: ");
             }
-            Console.Write("Enter your nextOfKin: ");
+            Console.Write("Enter your nextOfKin: ");                                                        
             string NOK = Console.ReadLine();
 
-            Console.WriteLine("Enter your roomtype () 2 - QueenSize = 100000, 3 - Presidential = 50000, 4 - DoubleSize = 25000, 5 - NormalSize = 25000  : ");
-            int roomtype;
-            while (!int.TryParse(Console.ReadLine(), out roomtype))
-            {
-                Console.WriteLine("Invalid input; Enter; Enter RoomType () 2 - QueenSize = 100000, 3 - Presidential = 50000, 4 - DoubleSize = 25000, 5 - NormalSize = 25000 ");
-            }
+            Console.WriteLine("Enter your roomtype: ");
+            string roomtype = Console.ReadLine();
+            
 
             customerManager.CreateCustomer(NOK, fName, lName, email, password, DOB, phoneNumber, roomtype);
             Customer();
@@ -121,7 +118,7 @@ namespace HMS.Menu
 
 
                     case 2:
-                        AddMoneyToWallet();
+                        AddMoneyToWallet(customer);
                         break;
 
                     // case 3:
@@ -156,30 +153,25 @@ namespace HMS.Menu
             Console.Write("Enter your checkOutDate(yyyy-mm-dd): ");
             DateTime checkOutDate = DateTime.Parse(Console.ReadLine());
 
-            Console.WriteLine("Enter your roomtype () 2 - QueenSize = 100000, 3 - Presidential = 50000, 4 - DoubleSize = 25000, 5 - NormalSize = 15000  : ");
-            int roomtype;
-            while (!int.TryParse(Console.ReadLine(), out roomtype))
-            {
-                Console.WriteLine("Invalid input; Enter; Enter RoomType () 2 - QueenSize = 100000, 3 - Presidential = 50000, 4 - DoubleSize = 25000, 5 - NormalSize = 15000 ");
-            }
+            Console.Write("Enter your roomtype: ");
+            string roomtype = Console.ReadLine();
+            
 
             DateTime bookingdate = DateTime.UtcNow;
             // Console.Write("Enter your duration: ");
             int duration = ((checkOutDate - checkInDate).Days) + 1;
             bool ischecked = true;
 
-            bookingManager.CreateBooking( bookingdate,  checkInDate, checkOutDate, ischecked, roomtype, duration);
+            bookingManager.CreateBooking(bookingdate, checkInDate, checkOutDate, ischecked, roomtype, duration);
         }
 
-        public void AddMoneyToWallet()
+        public void AddMoneyToWallet(Customer customer)
         {
-            Console.Write("Enter your email: ");
-            string email = Console.ReadLine();
-
             Console.Write("Enter your amount: ");
             double amount = double.Parse(Console.ReadLine());
 
-            customerManager.AddMoneyToWallet(email, amount);
+            customerManager.AddMoneyToWallet(customer.Email, amount);
+            Console.WriteLine($"{amount} has been successfully added to your wallet");
         }
 
         public void CheckWallet()

@@ -6,8 +6,8 @@ namespace HMS.Interfaces
     {
         public void CreateRoom (string type, double price);
         public void UpdateRoom (string type, double price);
-        public void DeleteRoom (string type);
-        public Room GetRoom (string type);
+        public void DeleteRoom (string roomNumber);
+        public Room GetRoom (string roomNumber);
         public void GetAllRooms ();
     }
 }

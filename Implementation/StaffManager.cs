@@ -8,17 +8,14 @@ namespace HMS.Interfaces.Implementation
 {
     public class StaffManager : IStaffManager
     {
-        // public static List<Staff> Staffs = new List<Staff>();
         public string connectionString = "Server=localhost;Database=hms;Uid=root;Pwd=masturah";
         public void CreateStaff(string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, string roles)
         {
 
             Random rand = new Random();
-            // int id = St
-            string staffnumber = "MTC/CTM" + rand.Next(100, 999).ToString();
+            string staffnumber = "FIVE/STARS" + rand.Next(100, 999).ToString();
             Staff staff = new Staff(roles, staffnumber, firstName, lastName, email, password, dateOfBirth, phoneNumber);
-            // Staffs.Add(staff);
-            var query = $"insert into hms.staffs (firstName, lastName, Email, Password, DateOfBirth, PhoneNumber, Roles) value ('{firstName}', '{lastName}', '{email}', '{password}', '{dateOfBirth}', '{phoneNumber}', {roles});";
+            var query = $"insert into hms.staffs (firstName, lastName, Email, Password, DateOfBirth, PhoneNumber, Roles, staffNumber) value ('{firstName}', '{lastName}', '{email}', '{password}', '{dateOfBirth}', '{phoneNumber}', '{roles}', '{staffnumber}');";
             try
             {
                 using (var connection = new MySqlConnection(connectionString))

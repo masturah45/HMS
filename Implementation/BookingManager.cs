@@ -8,50 +8,13 @@ namespace HMS.Interfaces.Implementation
 {
     public class BookingManager : IBookingManager
     {
-        // public static List<Booking> listOfBookings = new List<Booking>();
         public string connectionString = "Server=localhost;Database=hms;Uid=root;Pwd=masturah";
-        public void CreateBooking(DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, bool ischecked,int roomtype, int duration)
+        public void CreateBooking ( DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, bool ischecked,string roomtype, int duration)
         {
             Random random = new Random();
-        //    int id = listOfBookings.Count + 1;
-
-        //    if (checkInDate == DateTime.Now) ischecked = true;
-          
-        //    string customernumber = customer.CustomerNumber;
-
-        //     if(roomtype == 1)
-        //     {
-        //         customer.Wallet -= 200000 * duration;
-        //     }
-
-        //     else if(roomtype == 2)
-        //     {
-        //         customer.Wallet -= 100000 * duration;
-        //     }
-
-        //     else if (roomtype == 3)
-        //     {
-        //         customer.Wallet -= 50000 * duration;
-        //     }
-
-        //     else if (roomtype == 4)
-        //     {
-        //         customer.Wallet -= 25000 * duration;
-        //     }
-
-        //     else if (roomtype == 5)
-        //     {
-        //         customer.Wallet -= 15000 * duration;
-        //     }
-
-        //     else
-        //     {
-        //         Console.WriteLine("Invalid Input");
-        //     }
-
+            
            Booking booking = new Booking (bookingDate, checkInDate, checkOutDate, ischecked, roomtype, duration);
-        //    listOfBookings.Add(booking);
-          var query = $"insert into booking (bookingDate, checkInDate, checkOutDate, duration)values ('{bookingDate}', '{checkInDate}', '{checkOutDate}', {duration})";
+          var query = $"insert into booking (bookingNumber,bookingDate, checkInDate, checkOutDate, duration, roomtype, ischecked)values ('{Booking.GenerateBookingNumber()}', '{bookingDate}', '{checkInDate}', '{checkOutDate}', {duration}, '{roomtype}', {ischecked})";
           
             try
             {
@@ -68,93 +31,131 @@ namespace HMS.Interfaces.Implementation
             {
                 System.Console.WriteLine(ex.Message);
             }
-        //    Console.WriteLine($"You have successfully booked a room \nDuration: {duration} \nAmount {customer.Wallet}");
+            Console.WriteLine($"You have successfully booked a room \nDuration {duration} and your bookingNumber is {Booking.GenerateBookingNumber()}");
         }
 
-        public void DeleteBooking()
+        public void DeleteBooking(string bookingNumber)
         {
-            Console.Write("Enter bookingDate to delete: ");
-            DateTime bookingDate = DateTime.Parse(Console.ReadLine().Trim());
-            // foreach(var item in listOfBookings)
-            // {
-            //     if (item.BookingDate == bookingDate)
-            //     {
-            //         listOfBookings.Remove(item);
-            //         break;
-            //     }
-            // }
+            var booking = GetBooking(bookingNumber);
+            if (booking != null)
+            {
+                try
+                {
+                    var deleteSuccessMsg = $"{booking.CheckInDate} {booking.CheckOutDate} Successfully deleted. ";
+                    using (var connection = new MySqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        using (var command = new MySqlCommand($"DELETE From booking WHERE BookingNumber = '{bookingNumber}'", connection))
+                        {
+                            var reader = command.ExecuteNonQuery();
+                            System.Console.WriteLine(deleteSuccessMsg);
+                        }
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    System.Console.WriteLine(ex.Message);
+                }
+            }
+            else
+            {
+                Console.WriteLine("booking not found.");
+            }
         }
 
         public void GetAllBooking()
         {
-            // foreach (var item in listOfBookings)
-            // {
-            //     Console.Write($"{item.BookingDate}\t{item.CheckInDate}\t{item.CheckOutDate}\t{item.isChecked}");
-            // }
-            Console.WriteLine();
-        }
-
-        public Booking GetAvailableRooms(int roomType, DateTime bookingDate, int duration)
-        {
-            // foreach (var item in listOfBookings)
-            // {
-            //     if (item.RoomType == roomType && item.BookingDate == bookingDate && item.Duration == duration )
-            //     {
-            //         Console.WriteLine($"You have successfully booked a room for yourself");
-            //     }
-            // }
-
-            return null;
-        }
-
-        public Booking GetBooking( DateTime bookingDate)
-        {
-            // foreach(var booking in listOfBookings)
-            // {
-            //     if ( booking.BookingDate == bookingDate)
-            //     {
-            //         return booking;
-            //     }
-            // }
-            return null;
-        }
-
-        // public Booking GetBooking(DateTime bookingDate)
-        // {
-        //     foreach (var booking in listOfBookings)
-        //     {
-        //         if (booking.BookingDate == bookingDate)
-        //         {
-        //             return booking;
-        //         }
-        //     }
-        //     return null;
-        // }
-
-        public void UpdateBooking()
-        {
-            Console.Write("Enter the bookingdate to Update: ");
-            DateTime bookingdate = DateTime.Parse(Console.ReadLine().Trim());
-            Booking bookingdateToUpdate = GetBooking(bookingdate);
-            if (bookingdateToUpdate != null)
+            try
             {
-                Console.Write("Update checkInDate: ");
-                DateTime checkInDate = DateTime.Parse(Console.ReadLine().Trim());
-                bookingdateToUpdate.CheckInDate = checkInDate;
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand("select * From bookings", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"{reader["BookingDate"]}\t{reader["CheckInDate"]}\t{reader["CheckOutDate"].ToString()}\t{reader["isChecked"].ToString()}");
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }
+        }
 
-                Console.Write("Update checkOutDate: ");
-                DateTime checkOutDate = DateTime.Parse(Console.ReadLine().Trim());
-                bookingdateToUpdate.CheckOutDate = checkOutDate;
-
-                Console.Write("Update Duration:  ");
-                int duration = int.Parse(Console.ReadLine().Trim());
-                bookingdateToUpdate.Duration = duration;
-                Console.WriteLine("booking updated successfully");
+        public Booking GetAvailableRooms(string roomType, DateTime bookingDate, int duration)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand("select * From booking", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                     while (reader.Read())
+                        {
+                            Console.WriteLine($"{reader["Roomtype"]}\t{reader["Bookingdate"]}\t{reader["duration"]}");
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
             }
 
-            else
+            return null;
+        }
+
+        public Booking   GetBooking(string bookingNumber)
+        {
+            Booking booking = null;
+            try
             {
-                Console.WriteLine("booking not found");
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new MySqlCommand($"select * From booking WHERE BookingNumber = '{bookingNumber}'", connection))
+                    {
+                        var reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            booking = new Booking(DateTime.Parse(reader["bookingDate"].ToString()), DateTime.Parse(reader["checkInDate"].ToString()), DateTime.Parse(reader["checkOutDate"].ToString()), bool.Parse(reader["isChecked"].ToString()), reader["roomtype"].ToString(),Convert.ToInt32(reader["duration"]));
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+            }
+            return booking;
+        }
+
+        public void UpdateBooking(DateTime bookingDate, DateTime checkInDate, DateTime checkOutDate, int duration)
+        {
+            try
+            {
+                using(var connection = new MySqlConnection(connectionString))
+                {
+                    var msg = $"{bookingDate} Updated Sucessfully";
+                    connection.Open();
+                    var queryUpdateA = $"Update bookings SET checkInDate = '{checkInDate}', checkOutDte = '{checkOutDate}', duration = '{duration}' where bookingDate = '{bookingDate}'";
+                    using (var command = new MySqlCommand(queryUpdateA, connection))
+                    {
+                        var yes = command.ExecuteNonQuery();
+                        System.Console.WriteLine(msg);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                
+                System.Console.WriteLine(ex.Message);
             }
         }
     }

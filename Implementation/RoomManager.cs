@@ -8,16 +8,13 @@ namespace HMS.Interfaces.Implementation
 {
     public class RoomManager : IRoomManager
     {
-        // public static List<Room> listOfRooms = new List<Room>();
         public string connectionString = "Server=localhost;Database=hms;Uid=root;Pwd=masturah";
         public void CreateRoom(string type, double price)
         {    
             Random rand = new Random();
-            // int id = listOfRooms.Count + 1;
-            string roomNumber = "MTC/CTM" + rand.Next(100, 999).ToString();
+            string roomNumber = "FIVE/STARS" + rand.Next(100, 999).ToString();
             Room room = new Room(type, price,roomNumber);
-            // listOfRooms.Add(room);
-             var query = $"insert into rooms (type, price)values ('{type}', {price})";
+             var query = $"insert into rooms (type, price, Roomnumber)values ('{type}', {price}, '{roomNumber}')";
             try
             {
                 using (var connection = new MySqlConnection(connectionString))
@@ -36,9 +33,9 @@ namespace HMS.Interfaces.Implementation
             Console.WriteLine($"thank you, {room.Type} created succesfully and the room number is {room.RoomNumber}");
         }
 
-         public void DeleteRoom(string type)
+         public void DeleteRoom(string roomNumber )
         {
-           var room = GetRoom(type);
+           var room = GetRoom(roomNumber);
             if (room != null)
             {
                 try
@@ -47,7 +44,7 @@ namespace HMS.Interfaces.Implementation
                     using (var connection = new MySqlConnection(connectionString))
                     {
                         connection.Open();
-                        using (var command = new MySqlCommand($"DELETE From rooms WHERE Type = '{type}'", connection))
+                        using (var command = new MySqlCommand($"DELETE From rooms WHERE RoomNumber = '{roomNumber}'", connection))
                         {
                             var reader = command.ExecuteNonQuery();
                             System.Console.WriteLine(deleteSuccessMsg);
@@ -75,7 +72,7 @@ namespace HMS.Interfaces.Implementation
                     using (var command = new MySqlCommand("select * From rooms", connection))
                     {
                         var reader = command.ExecuteReader();
-                      while (reader.Read())
+                     while (reader.Read())
                         {
                             Console.WriteLine($"{reader["Type"]}\t{reader["Price"]}\t{reader["RoomNumber"].ToString()}");
                         }
@@ -85,10 +82,10 @@ namespace HMS.Interfaces.Implementation
             catch (System.Exception ex)
             {
                 System.Console.WriteLine(ex.Message);
-            } 
+            }
         }
 
-        public Room GetRoom(string type)
+        public Room GetRoom(string roomNumber)
         {
             Room room = null;
             try
@@ -96,7 +93,7 @@ namespace HMS.Interfaces.Implementation
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    using (var command = new MySqlCommand($"select * From rooms WHERE Email = '{type}'", connection))
+                    using (var command = new MySqlCommand($"select * From rooms WHERE RoomNumber = '{roomNumber}'", connection))
                     {
                         var reader = command.ExecuteReader();
                         while (reader.Read())
@@ -110,7 +107,7 @@ namespace HMS.Interfaces.Implementation
             {
                 System.Console.WriteLine(ex.Message);
             }
-            return room is not null && room.Type.ToUpper() == type.ToUpper() ? room : null;
+            return room is not null && room.RoomNumber.ToUpper() == roomNumber.ToUpper() ? room : null;
         }
 
         public void UpdateRoom(string type, double price)

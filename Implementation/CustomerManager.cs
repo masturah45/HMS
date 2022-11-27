@@ -8,50 +8,52 @@ namespace HMS.Interfaces.Implementation
 {
     public class CustomerManager : ICustomerManager
     {
-        // public static List<Customer> listOfCustomers = new List<Customer>();
         public string connectionString = "Server=localhost;Database=hms;Uid=root;Pwd=masturah";
         public void AddMoneyToWallet(string email, double amount)
         {
-            Customer adm = GetCustomer(email);
-            if (adm != null)
+            var query = $"update customers set wallet = ({amount} + wallet) where email = '{email}' ";
+            try
             {
-                adm.Wallet += amount;
-                Console.WriteLine($"{amount} successfully added to wallet and balance is {adm.Wallet}");
-
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("customer not found");
+                System.Console.WriteLine(ex.Message);
             }
         }
 
         public void CheckWallet(string email, double amount)
         {
-            Customer ad = GetCustomer(email);
-            if (ad != null)
-            {
-                if (ad.Wallet > 0 )
-                {
-                    Console.WriteLine("You have checked your balance");
-                }
+            // Customer ad = GetCustomer(email);
+            // if (ad != null)
+            // {
+            //     if (ad.Wallet > 0)
+            //     {
+            //         Console.WriteLine("You have checked your balance");
+            //     }
 
-            }
-            else
-            {
-                Console.WriteLine("Customer not found");
-            }
+            // }
+            // else
+            // {
+            //     Console.WriteLine("Customer not found");
+            // }
         }
 
-        public void CreateCustomer(string nextOfKin, string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, int roomtype)
+        public void CreateCustomer(string nextOfKin, string firstName, string lastName, string email, string password, DateTime dateOfBirth, string phoneNumber, string roomtype)
         {
 
             Random rand = new Random();
-            // int id = listOfCustomers.Count + 1;
             double wallet = 0;
-            string customernumber = "MTC/CTM" + rand.Next(100, 999).ToString();
-            Customer customer = new Customer(wallet, nextOfKin, customernumber,firstName, lastName, email, password, dateOfBirth, phoneNumber, roomtype);
-            // listOfCustomers.Add(customer);
-            var query = $"insert into customers (firstName, lastName, Email, Password, DateOfBirth, NextOfKin, PhoneNumber, Roomtype)values ('{firstName}', '{lastName}', '{email}', '{password}', '{dateOfBirth}', '{nextOfKin}', '{phoneNumber}', {roomtype})";
+            string customernumber = "FIVE/STARS" + rand.Next(100, 999).ToString();
+            Customer customer = new Customer(wallet, nextOfKin, customernumber, firstName, lastName, email, password, dateOfBirth, phoneNumber, roomtype);
+            var query = $"insert into customers (firstName, lastName, Email, Password, DateOfBirth, NextOfKin, PhoneNumber, Roomtype, customerNumber)values ('{firstName}', '{lastName}', '{email}', '{password}', '{dateOfBirth}', '{nextOfKin}', '{phoneNumber}', '{roomtype}', '{customernumber}')";
             try
             {
                 using (var connection = new MySqlConnection(connectionString))
@@ -72,7 +74,7 @@ namespace HMS.Interfaces.Implementation
 
         public void DeleteCustomer(string email)
         {
-           var customer = GetCustomer(email);
+            var customer = GetCustomer(email);
             if (customer != null)
             {
                 try
@@ -124,7 +126,7 @@ namespace HMS.Interfaces.Implementation
 
         public Customer GetCustomer(string email)
         {
-           Customer customer = null;
+            Customer customer = null;
             try
             {
                 using (var connection = new MySqlConnection(connectionString))
@@ -135,7 +137,7 @@ namespace HMS.Interfaces.Implementation
                         var reader = command.ExecuteReader();
                         while (reader.Read())
                         {
-                            customer = new Customer(double.Parse(reader["wallet"].ToString()), reader["nextOfKin"].ToString(),reader["customerNumber"].ToString(), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString(), Convert.ToInt32(reader["roomtype"]));
+                            customer = new Customer(double.Parse(reader["wallet"].ToString()), reader["nextOfKin"].ToString(), reader["customerNumber"].ToString(), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString(), reader["roomtype"].ToString());
                         }
                     }
                 }
@@ -162,7 +164,7 @@ namespace HMS.Interfaces.Implementation
                         var reader = command.ExecuteReader();
                         while (reader.Read())
                         {
-                            customer = new Customer(double.Parse(reader["wallet"].ToString()),reader["nextOfKin"].ToString(), reader["customerNumber"].ToString(), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString(), int.Parse(reader["roomtype"].ToString()));
+                            customer = new Customer(double.Parse(reader["wallet"].ToString()), reader["nextOfKin"].ToString(), reader["customerNumber"].ToString(), reader["firstName"].ToString(), reader["lastName"].ToString(), reader["email"].ToString(), reader["password"].ToString(), DateTime.Parse(reader["dateOfBirth"].ToString()), reader["phoneNumber"].ToString(), (reader["roomtype"].ToString()));
                         }
                     }
                 }
@@ -174,26 +176,38 @@ namespace HMS.Interfaces.Implementation
             return customer is not null && customer.Email.ToUpper() == email.ToUpper() && customer.Password == password ? customer : null;
         }
 
-        
 
 
-        // public Customer RescheduleBooking( int roomtype, int bookingdate, string duration)
-        // {
-        //     foreach (var item in listOfCustomers)
-        //     {
-        //         if (item.bookingDate == bookingdate)
-        //         {
-        //             return item;
-        //         }
-        //     }
-        //     return null;
-        // } 
+
+        public Customer RescheduleBooking(string email, string roomtype, int bookingdate, string duration)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    var msg = $"{email} Updated Sucessfully";
+                    connection.Open();
+                    var queryUpdateA = $"reschedule bookings SET roomtype = {roomtype}, bookingdate = {bookingdate}, duration = '{duration}' where email = '{email}'";
+                    using (var command = new MySqlCommand(queryUpdateA, connection))
+                    {
+                        var yes = command.ExecuteNonQuery();
+                        System.Console.WriteLine(msg);
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+
+                System.Console.WriteLine(ex.Message);
+            }
+            return null;
+        } 
 
         public void UpdateCustomer(string email, string firstName, string lastName, string nextOfKin)
         {
             try
             {
-                using(var connection = new MySqlConnection(connectionString))
+                using (var connection = new MySqlConnection(connectionString))
                 {
                     var msg = $"{email} Updated Sucessfully";
                     connection.Open();
@@ -207,7 +221,7 @@ namespace HMS.Interfaces.Implementation
             }
             catch (System.Exception ex)
             {
-                
+
                 System.Console.WriteLine(ex.Message);
             }
         }

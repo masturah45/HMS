@@ -58,7 +58,7 @@ namespace HMS.Menu
             Console.Write("Enter your phoneNumber: ");
             string phoneNumber = Console.ReadLine();
 
-            DateTime DOB = DateTime.Parse(Console.ReadLine());
+            DateTime DOB;//= DateTime.Parse(Console.ReadLine());
             Console.Write("Enter your dateOfBirth(yyyy-mm-dd): ");
             while (!DateTime.TryParse(Console.ReadLine(), out DOB))
             {
@@ -116,15 +116,15 @@ namespace HMS.Menu
 
         public void StaffSubMenu()
         {
-            Console.WriteLine("\nEnter 1 to update staffs\nEnter 2 to create staff\nEnter 3 to get the available rooms\nEnter 4 to update customer\nEnter 5 to delete customer\nEnter 6 to create room\nEnter 7 to view all staffs\nEnter 8 to view all custoomers\nEnter 9 to view all rooms\nEnter 0 to go back to main menu");
-            bool exit = false;
-            while (!exit)
-            {
+            Console.WriteLine("\nEnter 1 to update staffs\nEnter 2 to create staff\nEnter 3 to get the available rooms\nEnter 4 to update customer\nEnter 5 to delete customer\nEnter 6 to create room\nEnter 7 to delete staff\nEnter 8 to view all staffs\nEnter 9 to view all custoomers\nEnter 10 to view all rooms\nEnter 11 to delete rooms\nEnter 12 to update booking\nEnter 13 to delete booking\nEnter 0 to go back to main menu");
+             bool exit = false;
+             while (!exit)
+             {
                 int option;
 
                 while (!int.TryParse(Console.ReadLine(), out option))
                 {
-                    Console.WriteLine("Invalid Input, Enter 1, 2, 3, 4, 5 or 0");
+                    Console.WriteLine("Invalid Input, Enter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 or 0");
                 }
                 switch (option)
                 {
@@ -152,16 +152,32 @@ namespace HMS.Menu
                         CreateRoom();
                         break;
 
-                    case 7:
+                    case 7 :
+                        DeleteStaff();
+                        break;
+
+                    case 8 :
                         staffManager.GetAllStaff();
                         break;
 
-                    case 8:
+                    case 9 :
                         customerManager.GetAllCustomer();
                         break;
 
-                    case 9:
+                    case 10 :
                         roomManager.GetAllRooms();
+                        break;
+
+                    case 11 :
+                    DeleteRoom();
+                        break;
+
+                    case 12 :
+                    UpdateBooking();
+                        break;
+
+                    case 13 :
+                    DeleteBooking();
                         break;
 
                     case 0:
@@ -170,9 +186,10 @@ namespace HMS.Menu
 
                     default:
                         Console.WriteLine("Invalid Input");
+                        StaffSubMenu();
                         break;
                 }
-            }
+             }
         }
 
         public void UpdateStaff()
@@ -254,7 +271,6 @@ namespace HMS.Menu
             var customer = customerManager.GetCustomer(email);
             if (customer != null)
             {
-                Console.Write("after getting");
                 Console.Write("Enter new customer first Name: ");
                 string firstName = Console.ReadLine();
 
@@ -279,19 +295,25 @@ namespace HMS.Menu
             System.Console.Write("Enter your email: ");
             string email = Console.ReadLine().Trim();
 
-            var customer = customerManager.GetCustomer(email);
+            customerManager.DeleteCustomer(email);
+
+            System.Console.WriteLine($"{email} successfully deleted");
+        }
+
+        public void DeleteStaff()
+        {
+            System.Console.WriteLine("Enter your email: ");
+            string email = Console.ReadLine().Trim();
+
+            staffManager.DeleteStaff(email);
 
             System.Console.WriteLine($"{email} successfully deleted");
         }
 
         public void GetAvailableRooms()
         {
-            Console.WriteLine("Enter your roomtype () 2 - QueenSize, 3 - Presidential, 4 - DoubleSize, 5 - NormalSize  : ");
-            int roomtype;
-            while (!int.TryParse(Console.ReadLine(), out roomtype))
-            {
-                Console.WriteLine("Invalid input; Enter; Enter RoomType () 2 - QueenSize, 3 - Presidential, 4 - DoubleSize, 5 - NormalSize ");
-            }
+            Console.WriteLine("Enter your roomtype: ");
+            string roomtype = Console.ReadLine();
 
             Console.Write("Enter your bookingDate(yyyy-mm-dd): ");
             DateTime bookingDate = DateTime.Parse(Console.ReadLine());
@@ -313,6 +335,53 @@ namespace HMS.Menu
             double price = double.Parse(Console.ReadLine());
 
             roomManager.CreateRoom(type, price);
+        }
+
+        public void DeleteRoom()
+        {
+            System.Console.Write("Enter roomNumber to delete room: ");
+            string roomNumber = Console.ReadLine();
+
+            roomManager.DeleteRoom(roomNumber);
+
+            System.Console.WriteLine($"{roomNumber} successfully deleted");
+        }
+
+        public void UpdateBooking()
+        {
+            Console.Write("Enter the bookingdate to Update: ");
+            string bookingNumber = Console.ReadLine().Trim();
+            Booking bookingDateToUpdate = bookingManager.GetBooking(bookingNumber);
+            if (bookingDateToUpdate != null)
+            {
+                Console.Write("Update checkInDate: ");
+                DateTime checkInDate = DateTime.Parse(Console.ReadLine().Trim());
+                bookingDateToUpdate.CheckInDate = checkInDate;
+
+                Console.Write("Update checkOutDate: ");
+                DateTime checkOutDate = DateTime.Parse(Console.ReadLine().Trim());
+                bookingDateToUpdate.CheckOutDate = checkOutDate;
+
+                int duration = ((checkOutDate - checkInDate).Days) + 1;
+                bool ischecked = true;
+                bookingDateToUpdate.Duration = duration;
+                Console.WriteLine("booking updated successfully");
+            }
+
+            else
+            {
+                Console.WriteLine("booking not found");
+            }
+        }
+
+        public void DeleteBooking()
+        {
+            System.Console.Write("Enter bookingnumber to delete booking: ");
+            string bookingNumber = Console.ReadLine();
+
+            bookingManager.DeleteBooking(bookingNumber);
+
+            System.Console.WriteLine($"{bookingNumber} successfully deleted");
         }
     }
 }

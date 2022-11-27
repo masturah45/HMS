@@ -279,6 +279,7 @@ namespace HMS.Menu
 
                 Console.Write("Enter new nextOfKin: ");
                 string nextOfKin = Console.ReadLine();
+                
 
                 customerManager.UpdateCustomer(email, firstName, lastName, nextOfKin);
 
